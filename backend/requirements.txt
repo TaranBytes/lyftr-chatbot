@@ -1,0 +1,6 @@
+# Pinned to the versions the test-suite was run against.
+# litellm is pinned to 1.77.7 on purpose: newer releases (1.110.x) import the whole LiteLLM *proxy*
+# stack (orjson, soundfile, ...) as soon as the response cache is used, which bloats the image.
+litellm==1.77.7
+fastapi==0.165.0
+uvicorn==0.54.0

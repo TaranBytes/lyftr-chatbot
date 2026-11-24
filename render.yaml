@@ -1,7 +1,7 @@
 # Render Blueprint: New + > Blueprint > pick this repo.
 # FREE plan: no persistent disk, so the SQLite file (/data) is ephemeral and is
 # wiped on every restart/redeploy. Keep it awake with an uptime monitor that
-# pings /health every 5-14 minutes. For durable history use plan: free and
+# pings /health every 5-14 minutes. For durable history use plan: starter and
 # add a disk (name: chat-data, mountPath: /data, sizeGB: 1).
 services:
   - type: web

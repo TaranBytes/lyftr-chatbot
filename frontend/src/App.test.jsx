@@ -1,4 +1,4 @@
-import { render, screen, within, waitFor } from "@testing-library/react";
+import { render, screen, within, waitFor, cleanup } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import App from "./App.jsx";
@@ -186,14 +186,25 @@ describe("errors are readable and shown inside the chat", () => {
     expect(await screen.findByTestId("assistant-message")).toBeInTheDocument();
   });
 
-  it("sends X-Simulate-Failure only when the page URL has ?simulate=", async () => {
+  it("sends X-Simulate-Failure only when chosen in the dropdown or given as ?simulate=", async () => {
     fetchMock.mockReturnValue(reply(200, okBody()));
+    render(<App />);
+    await userEvent.type(screen.getByTestId("chat-input"), "plain");
+    await userEvent.click(screen.getByTestId("send-button"));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    expect(fetchMock.mock.calls[0][1].headers["X-Simulate-Failure"]).toBeUndefined();
+    await userEvent.selectOptions(screen.getByTestId("simulate-select"), "*=429");
+    await userEvent.type(screen.getByTestId("chat-input"), "again");
+    await userEvent.click(screen.getByTestId("send-button"));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    expect(fetchMock.mock.calls[1][1].headers["X-Simulate-Failure"]).toBe("*=429");
+    cleanup();
     window.history.pushState({}, "", "/?simulate=key_1=429");
     render(<App />);
     await userEvent.type(screen.getByTestId("chat-input"), "hi");
     await userEvent.click(screen.getByTestId("send-button"));
-    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
-    expect(fetchMock.mock.calls[0][1].headers["X-Simulate-Failure"]).toBe("key_1=429");
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(3));
+    expect(fetchMock.mock.calls[2][1].headers["X-Simulate-Failure"]).toBe("key_1=429");
     window.history.pushState({}, "", "/");
   });
 });

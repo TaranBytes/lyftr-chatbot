@@ -50,3 +50,6 @@ textarea:focus { outline: 2px solid #c7d2fe; border-color: var(--accent); }
 .composer button:disabled { opacity: .5; cursor: not-allowed; }
 
 @media (max-width: 600px) { .app { border: 0; } .bubble { max-width: 94%; } }
+
+.simulate { color: var(--muted); font-size: 12px; }
+.simulate select { font-size: 12px; margin-left: 4px; }

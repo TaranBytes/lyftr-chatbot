@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { sendChat } from "./api.js";
+import { initialSimulate, sendChat } from "./api.js";
 
 // A brand-new session id is created every time the page loads (assignment requirement).
 const newSessionId = () => `s-${crypto.randomUUID()}`;
@@ -61,6 +61,7 @@ export default function App() {
   const [input, setInput] = useState("");
   const [systemPrompt, setSystemPrompt] = useState("");
   const [loading, setLoading] = useState(false);
+  const [simulate, setSimulate] = useState(initialSimulate);
   const bottomRef = useRef(null);
 
   useEffect(() => {
@@ -74,7 +75,7 @@ export default function App() {
     setInput(""); // chat-input is empty right after sending
     setLoading(true);
     try {
-      const data = await sendChat({ sessionId, message: text, systemPrompt });
+      const data = await sendChat({ sessionId, message: text, systemPrompt, simulate });
       setMessages((m) => [...m, { role: "assistant", content: data.reply, metadata: data.metadata }]);
     } catch (err) {
       setMessages((m) => [...m, { role: "error", content: err.message }]);
@@ -94,6 +95,15 @@ export default function App() {
     <div className="app">
       <header className="header">
         <h1>Lyftr Chat</h1>
+        <label className="simulate" title="Demo only: sends the X-Simulate-Failure header">
+          Simulate failure{" "}
+          <select data-testid="simulate-select" value={simulate} onChange={(e) => setSimulate(e.target.value)}>
+            <option value="">off</option>
+            <option value="key_1=429">key_1 fails (429)</option>
+            <option value="*=429">all keys fail</option>
+            {!["", "key_1=429", "*=429"].includes(simulate) && <option value={simulate}>{simulate}</option>}
+          </select>
+        </label>
         <span className="session" title="A new session starts on every page load">session {sessionId.slice(0, 10)}…</span>
       </header>
 

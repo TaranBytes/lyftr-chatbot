@@ -15,19 +15,20 @@ function describeDetail(detail) {
   return "";
 }
 
-/** Demo switch: opening the page with ?simulate=key_1=429 (or *=429) sends X-Simulate-Failure.
- *  Normal visitors never have the parameter, so they never send the header. */
-function simulateHeader() {
+/** Demo switch for X-Simulate-Failure. The page's dropdown sets it; ?simulate=key_1=429 in the URL
+ *  pre-selects it. Normal visitors leave it "off", so they never send the header. */
+const SIMULATE_RE = /^[\w*=,]{1,64}$/;
+export function initialSimulate() {
   try {
     const v = new URLSearchParams(window.location.search).get("simulate");
-    return v && /^[\w*=,]{1,64}$/.test(v) ? { "X-Simulate-Failure": v } : {};
+    return v && SIMULATE_RE.test(v) ? v : "";
   } catch {
-    return {};
+    return "";
   }
 }
 
 /** POST /chat. Resolves with the response body, or throws ChatError with a user-readable message. */
-export async function sendChat({ sessionId, message, systemPrompt }) {
+export async function sendChat({ sessionId, message, systemPrompt, simulate }) {
   const body = { session_id: sessionId, message };
   if (systemPrompt && systemPrompt.trim()) body.system_prompt = systemPrompt.trim();
 
@@ -35,7 +36,7 @@ export async function sendChat({ sessionId, message, systemPrompt }) {
   try {
     response = await fetch(`${API_URL}/chat`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", ...simulateHeader() },
+      headers: { "Content-Type": "application/json", ...(simulate && SIMULATE_RE.test(simulate) ? { "X-Simulate-Failure": simulate } : {}) },
       body: JSON.stringify(body),
     });
   } catch {

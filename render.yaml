@@ -1,0 +1,26 @@
+# Render Blueprint: New + > Blueprint > pick this repo.
+# A persistent disk needs a paid instance type (starter); free web services
+# have no disk, so SQLite history would be wiped on every restart/spin-down.
+services:
+  - type: web
+    name: lyftr-chatbot-backend
+    runtime: docker
+    dockerContext: ./backend
+    dockerfilePath: ./backend/Dockerfile
+    plan: starter
+    healthCheckPath: /health
+    disk:
+      name: chat-data
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: LLM_API_KEYS
+        sync: false          # you paste the keys in the Render dashboard
+      - key: ALLOWED_ORIGINS
+        sync: false          # your Vercel URL, no trailing slash
+      - key: LLM_MODEL
+        value: gemini/gemini-3.5-flash-lite
+      - key: ENABLE_FAILURE_SIMULATION
+        value: "true"
+      - key: DATABASE_URL
+        value: sqlite:////data/app.db

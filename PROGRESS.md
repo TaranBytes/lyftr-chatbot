@@ -280,7 +280,10 @@ Command: `cd backend && pip install -r requirements-dev.txt && pytest`
 - `.env` is listed in `.gitignore` and is not inside the backend image (`/app/.env` absent); it was never read or printed during this check.
 - **Not tested:** clicking through the UI in a browser at :3000 (only the served page and the API were checked with curl). The stack is still running; stop it with `make down` (the volume is kept).
 
-## 14. Deployment — _not started_
+## 14. Deployment
+- **Decision (2026-11-25):** backend on Render **free** plan + Vercel frontend, with a free uptime monitor pinging `/health` every 5–14 min to avoid cold starts. Config: `render.yaml`, `frontend/vercel.json`.
+- **Known limitation:** Render free has no persistent disk, so SQLite history and the in-memory cache are lost on every restart or redeploy (not on idle spin-down alone, which the monitor prevents). Durable history needs `plan: starter` + a disk. Do not redeploy right before grading/demo.
+- Status: config written and pushed; not yet deployed (user does the Render/Vercel clicks).
 
 ## 15. Problems Encountered
 

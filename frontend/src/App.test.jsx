@@ -185,4 +185,15 @@ describe("errors are readable and shown inside the chat", () => {
     await user.type(screen.getByTestId("chat-input"), "second{Enter}");
     expect(await screen.findByTestId("assistant-message")).toBeInTheDocument();
   });
+
+  it("sends X-Simulate-Failure only when the page URL has ?simulate=", async () => {
+    fetchMock.mockReturnValue(reply(200, okBody()));
+    window.history.pushState({}, "", "/?simulate=key_1=429");
+    render(<App />);
+    await userEvent.type(screen.getByTestId("chat-input"), "hi");
+    await userEvent.click(screen.getByTestId("send-button"));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+    expect(fetchMock.mock.calls[0][1].headers["X-Simulate-Failure"]).toBe("key_1=429");
+    window.history.pushState({}, "", "/");
+  });
 });

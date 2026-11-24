@@ -15,6 +15,17 @@ function describeDetail(detail) {
   return "";
 }
 
+/** Demo switch: opening the page with ?simulate=key_1=429 (or *=429) sends X-Simulate-Failure.
+ *  Normal visitors never have the parameter, so they never send the header. */
+function simulateHeader() {
+  try {
+    const v = new URLSearchParams(window.location.search).get("simulate");
+    return v && /^[\w*=,]{1,64}$/.test(v) ? { "X-Simulate-Failure": v } : {};
+  } catch {
+    return {};
+  }
+}
+
 /** POST /chat. Resolves with the response body, or throws ChatError with a user-readable message. */
 export async function sendChat({ sessionId, message, systemPrompt }) {
   const body = { session_id: sessionId, message };
@@ -24,7 +35,7 @@ export async function sendChat({ sessionId, message, systemPrompt }) {
   try {
     response = await fetch(`${API_URL}/chat`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...simulateHeader() },
       body: JSON.stringify(body),
     });
   } catch {
